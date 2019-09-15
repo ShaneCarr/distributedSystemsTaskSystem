@@ -1,4 +1,5 @@
-package com.shcarrdistributedtasks.distributedtasks.controller
+package net.`in`.dayan.springdemo.controller
+
 
 import com.shcarrdistributedtasks.distributedtasks.entity.Todo
 import com.shcarrdistributedtasks.distributedtasks.repository.TodoRepository
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMethod
 import javax.servlet.http.HttpServletResponse
 import java.io.File
 import java.io.IOException
+
 import java.util.Date
 
 import java.nio.file.Files.*
@@ -34,23 +36,23 @@ class TodoController {
     @RequestMapping(value = "list", method = [RequestMethod.GET])
     fun list(model: Model): String {
         val list = todoRepository!!.findAll()
-    for (todo in list) {
-        if (getFile(todo.getId()) != null) {
-            todo.setHasPic(true)
+        for (todo in list) {
+            if (getFile(todo.id) != null) {
+                todo.setHasPic(true)
+            }
         }
+        model.addAttribute("todos", list)
+        return "todo/list"
     }
-    model.addAttribute("todos", list)
-    return "todo/list"
-}
 
-@RequestMapping(value = "edit/{id}", method = [RequestMethod.GET])
-fun edit(@PathVariable("id") id: Int?, model: Model): String {
-    setStatusOptions(model)
-    model.addAttribute("todo", todoRepository!!.findById(id).orElse(null))
-    return "todo/edit"
-}
+    @RequestMapping(value = "edit/{id}", method = [RequestMethod.GET])
+    fun edit(@PathVariable("id") id: Int?, model: Model): String {
+        setStatusOptions(model)
+        model.addAttribute("todo", todoRepository!!.findById(id).orElse(null))
+        return "todo/edit"
+    }
 
-@RequestMapping(value = "new", method = [RequestMethod.GET])
+    @RequestMapping(value = "new", method = [RequestMethod.GET])
     fun create(model: Model): String {
         setStatusOptions(model)
         model.addAttribute("todo", Todo())
@@ -64,19 +66,19 @@ fun edit(@PathVariable("id") id: Int?, model: Model): String {
     @RequestMapping(value = "save", method = [RequestMethod.POST])
     @Throws(IOException::class)
     fun save(@ModelAttribute("todo") todo: Todo, model: Model, response: HttpServletResponse): String? {
-        if (todo.getId() != null) {
-            val curTodo = todoRepository!!.findById(todo.getId()).orElse(null)
-            todo.setDt(curTodo.getDt())
+        if (todo.id != null) {
+            val curTodo = todoRepository!!.findById(todo.id!!).orElse(null)
+            todo.dt = curTodo.dt
         } else {
-            todo.setDt(Date())
+            todo.dt = Date()
         }
         todoRepository!!.save(todo)
 
-        if (todo.getPic() != null) {
+        if (todo.pic != null) {
             val dir = env!!.getProperty("app.picDir")
             File(dir!!).mkdir()
-            val ext = StringUtils.getFilenameExtension(todo.getPic().getOriginalFilename())
-            todo.getPic().transferTo(File(dir + "/" + todo.getId() + "." + ext))
+            val ext = StringUtils.getFilenameExtension(todo!!.pic!!.originalFilename)
+            todo!!.pic!!.transferTo(File(dir + "/" + todo.id + "." + ext))
         }
 
         response.sendRedirect("/todo/list")
@@ -86,7 +88,7 @@ fun edit(@PathVariable("id") id: Int?, model: Model): String {
     @RequestMapping(value = "delete/{id}", method = [RequestMethod.GET])
     @Throws(IOException::class)
     fun delete(@PathVariable("id") id: Int?, model: Model, response: HttpServletResponse): String? {
-        val todo = todoRepository!!.findById(id).orElse(null)
+        val todo = todoRepository!!.findById(id!!).orElse(null)
         if (todo != null) {
             todoRepository!!.delete(todo)
         }
