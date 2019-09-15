@@ -24,7 +24,7 @@ import java.util.Date
 import java.nio.file.Files.*
 
 @Controller
-@RequestMapping(value = "/todo")
+@RequestMapping(value = ["/todo"])
 class TodoController {
 
     @Autowired
@@ -33,7 +33,7 @@ class TodoController {
     @Autowired
     internal var env: Environment? = null
 
-    @RequestMapping(value = "list", method = [RequestMethod.GET])
+    @RequestMapping(value = ["list"], method = [RequestMethod.GET])
     fun list(model: Model): String {
         val list = todoRepository!!.findAll()
         for (todo in list) {
@@ -45,14 +45,14 @@ class TodoController {
         return "todo/list"
     }
 
-    @RequestMapping(value = "edit/{id}", method = [RequestMethod.GET])
+    @RequestMapping(value = ["edit/{id}"], method = [RequestMethod.GET])
     fun edit(@PathVariable("id") id: Int?, model: Model): String {
         setStatusOptions(model)
-        model.addAttribute("todo", todoRepository!!.findById(id).orElse(null))
+        model.addAttribute("todo", todoRepository!!.findById(id!!).orElse(null))
         return "todo/edit"
     }
 
-    @RequestMapping(value = "new", method = [RequestMethod.GET])
+    @RequestMapping(value = ["new"], method = [RequestMethod.GET])
     fun create(model: Model): String {
         setStatusOptions(model)
         model.addAttribute("todo", Todo())
@@ -63,7 +63,7 @@ class TodoController {
         model.addAttribute("statusOptions", Todo.statusOptions)
     }
 
-    @RequestMapping(value = "save", method = [RequestMethod.POST])
+    @RequestMapping(value = ["save"], method = [RequestMethod.POST])
     @Throws(IOException::class)
     fun save(@ModelAttribute("todo") todo: Todo, model: Model, response: HttpServletResponse): String? {
         if (todo.id != null) {
@@ -77,15 +77,15 @@ class TodoController {
         if (todo.pic != null) {
             val dir = env!!.getProperty("app.picDir")
             File(dir!!).mkdir()
-            val ext = StringUtils.getFilenameExtension(todo!!.pic!!.originalFilename)
-            todo!!.pic!!.transferTo(File(dir + "/" + todo.id + "." + ext))
+            val ext = StringUtils.getFilenameExtension(todo.pic!!.originalFilename)
+            todo.pic!!.transferTo(File(dir + "/" + todo.id + "." + ext))
         }
 
         response.sendRedirect("/todo/list")
         return null
     }
 
-    @RequestMapping(value = "delete/{id}", method = [RequestMethod.GET])
+    @RequestMapping(value = ["delete/{id}"], method = [RequestMethod.GET])
     @Throws(IOException::class)
     fun delete(@PathVariable("id") id: Int?, model: Model, response: HttpServletResponse): String? {
         val todo = todoRepository!!.findById(id!!).orElse(null)
@@ -99,7 +99,7 @@ class TodoController {
         return null
     }
 
-    @RequestMapping(value = "pic/{id}", method = [RequestMethod.GET])
+    @RequestMapping(value = ["pic/{id}"], method = [RequestMethod.GET])
     @Throws(IOException::class)
     fun pic(@PathVariable("id") id: Int?, model: Model): ResponseEntity<ByteArray>? {
         val file = getFile(id) ?: return null
